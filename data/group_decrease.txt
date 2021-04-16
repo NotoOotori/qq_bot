@@ -1,0 +1,1 @@
+<Event, {'group_id': 471792150, 'notice_type': 'group_decrease', 'operator_id': 734878227, 'post_type': 'notice', 'self_id': 3117207066, 'sub_type': 'leave', 'time': 1618574780, 'user_id': 734878227}>
