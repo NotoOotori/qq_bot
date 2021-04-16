@@ -11,11 +11,12 @@ async def handle_message(event: Event):
     message: Message = params['message']
     del params['message']
     new_message = await parse_message(message)
-    try:
-        print('[nonebot] INFO: 准备发送信息.')
-        await bot.send_msg(**params, message=new_message)
-    except CQHttpError:
-        print('[nonebot] ERROR: 发送信息"{}"失败.'.format(new_message))
+    if new_message:
+        try:
+            print('[nonebot] INFO: 准备发送信息.')
+            await bot.send_msg(**params, message=new_message)
+        except CQHttpError:
+            print('[nonebot] ERROR: 发送信息"{}"失败.'.format(new_message))
 
 async def parse_message(message: Message) -> Message:
     has_json = False
