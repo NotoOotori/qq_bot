@@ -25,7 +25,7 @@ async def handle_message(event: Event):
             print('[qq_bot.plugin.miniprogram] ERROR: 发送信息"{}"失败.'.format(new_message))
 
 async def parse_message(message: Message) -> Message:
-    flag_send = False
+    flag_send = False # 只要有一段flag为true即为true
     new_message = Message()
     for segement in message:
         new_segement, flag = await parse_segement(segement)
@@ -40,6 +40,7 @@ async def parse_segement(segement: MessageSegment) -> Tuple[MessageSegment, bool
     '''
     # 根据消息段类型进行分类处理, 先考虑纯文本
     if segement.type == 'text':
+        # 复读含有'阿屎'的消息段
         data = str(segement)
         if data.find('阿屎') != -1:
             new_segement = segement
@@ -47,7 +48,8 @@ async def parse_segement(segement: MessageSegment) -> Tuple[MessageSegment, bool
         else:
             new_segement = segement
             flag_send = False
-    else:
+
+    elif segement.type == 'json':
         data: str = segement.data['data']
 
         # 需要先对收到的字符串进行转义, 才能进行json解析
@@ -56,32 +58,31 @@ async def parse_segement(segement: MessageSegment) -> Tuple[MessageSegment, bool
         for index, pattern in enumerate(PATTERNS):
             data = re.sub(pattern, REPLACES[index], data)
 
-        if segement.type == 'json':
-            segement_json = json.loads(data)
-            app = segement_json['app']
-            if app == 'com.tencent.miniapp_01':
-                # QQ小程序
-                prompt: str = segement_json['prompt']
-                descrption: str = segement_json['meta']['detail_1']['desc']
-                link: str = segement_json['meta']['detail_1']['qqdocurl']
-                text = '{}\n{}\n{}'.format(prompt, descrption, link)
-                new_segement = MessageSegment.text(text)
-                flag_send = True
-            elif app == 'com.tencent.structmsg':
-                # 可能是分享之类的
-                view: str = segement_json['view']
-                prompt: str = segement_json['prompt']
-                descrption: str = segement_json['meta'][view]['desc']
-                link: str = segement_json['meta'][view]['jumpUrl']
-                text = '{}\n{}\n{}'.format(prompt, descrption, link)
-                new_segement = MessageSegment.text(text)
-                flag_send = True
-            else:
-                new_segement = segement
-                flag_send = False
+        segement_json = json.loads(data)
+        app = segement_json['app']
+        if app == 'com.tencent.miniapp_01':
+            # QQ小程序
+            prompt: str = segement_json['prompt']
+            descrption: str = segement_json['meta']['detail_1']['desc']
+            link: str = segement_json['meta']['detail_1']['qqdocurl']
+            text = '{}\n{}\n{}'.format(prompt, descrption, link)
+            new_segement = MessageSegment.text(text)
+            flag_send = True
+        elif app == 'com.tencent.structmsg':
+            # 可能是分享之类的
+            view: str = segement_json['view']
+            prompt: str = segement_json['prompt']
+            descrption: str = segement_json['meta'][view]['desc']
+            link: str = segement_json['meta'][view]['jumpUrl']
+            text = '{}\n{}\n{}'.format(prompt, descrption, link)
+            new_segement = MessageSegment.text(text)
+            flag_send = True
         else:
             new_segement = segement
             flag_send = False
+    else:
+        new_segement = segement
+        flag_send = False
     return new_segement, flag_send
 
 # # on_command 装饰器将函数声明为一个命令处理器
