@@ -1,5 +1,6 @@
 import json
 import re
+from typing import Tuple
 
 from aiocqhttp import Event, Message, MessageSegment
 from nonebot import CommandSession, CQHttpError, get_bot, on_command
@@ -24,20 +25,29 @@ async def handle_message(event: Event):
             print('[qq_bot.plugin.miniprogram] ERROR: 发送信息"{}"失败.'.format(new_message))
 
 async def parse_message(message: Message) -> Message:
-    has_json = False
+    flag_send = False
     new_message = Message()
     for segement in message:
         new_segement, flag = await parse_segement(segement)
-        has_json = has_json or flag
+        flag_send = flag_send or flag
         if (not new_segement is None):
-            new_message.append(await parse_segement(segement))
-    return new_message if has_json else None
+            new_message.append(new_segement)
+    return new_message if flag_send else None
 
-async def parse_segement(segement: MessageSegment) -> MessageSegment, bool:
+async def parse_segement(segement: MessageSegment) -> Tuple[MessageSegment, bool]:
     '''
-        解析并处理json消息段.
+        解析并处理消息段.
     '''
-    if segement.type == 'json':
+    # 根据消息段类型进行分类处理, 先考虑纯文本
+    if segement.type == 'text':
+        data = str(segement)
+        if data.find('阿屎') != -1:
+            new_segement = segement
+            flag_send = True
+        else:
+            new_segement = segement
+            flag_send = False
+    else:
         data: str = segement.data['data']
 
         # 需要先对收到的字符串进行转义, 才能进行json解析
@@ -46,32 +56,33 @@ async def parse_segement(segement: MessageSegment) -> MessageSegment, bool:
         for index, pattern in enumerate(PATTERNS):
             data = re.sub(pattern, REPLACES[index], data)
 
-        segement_json = json.loads(data)
-        app = segement_json['app']
-        if app == 'com.tencent.miniapp_01':
-            # QQ小程序
-            prompt: str = segement_json['prompt']
-            descrption: str = segement_json['meta']['detail_1']['desc']
-            link: str = segement_json['meta']['detail_1']['qqdocurl']
-            text = '{}\n{}\n{}'.format(prompt, descrption, link)
-            new_segement = MessageSegment.text(text)
-            has_json = True
-        elif app == 'com.tencent.structmsg':
-            # 可能是分享之类的
-            view: str = segement_json['view']
-            prompt: str = segement_json['prompt']
-            descrption: str = segement_json['meta'][view]['desc']
-            link: str = segement_json['meta'][view]['jumpUrl']
-            text = '{}\n{}\n{}'.format(prompt, descrption, link)
-            new_segement = MessageSegment.text(text)
-            has_json = True
+        if segement.type == 'json':
+            segement_json = json.loads(data)
+            app = segement_json['app']
+            if app == 'com.tencent.miniapp_01':
+                # QQ小程序
+                prompt: str = segement_json['prompt']
+                descrption: str = segement_json['meta']['detail_1']['desc']
+                link: str = segement_json['meta']['detail_1']['qqdocurl']
+                text = '{}\n{}\n{}'.format(prompt, descrption, link)
+                new_segement = MessageSegment.text(text)
+                flag_send = True
+            elif app == 'com.tencent.structmsg':
+                # 可能是分享之类的
+                view: str = segement_json['view']
+                prompt: str = segement_json['prompt']
+                descrption: str = segement_json['meta'][view]['desc']
+                link: str = segement_json['meta'][view]['jumpUrl']
+                text = '{}\n{}\n{}'.format(prompt, descrption, link)
+                new_segement = MessageSegment.text(text)
+                flag_send = True
+            else:
+                new_segement = segement
+                flag_send = False
         else:
             new_segement = segement
-            has_json = False
-    else:
-        new_segement = segement
-        has_json = False
-    return new_segement, has_json
+            flag_send = False
+    return new_segement, flag_send
 
 # # on_command 装饰器将函数声明为一个命令处理器
 # # 这里 weather 为命令的名字，同时允许使用别名「天气」「天气预报」「查天气」
