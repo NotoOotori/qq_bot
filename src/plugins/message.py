@@ -56,7 +56,7 @@ async def parse_segement(segement: MessageSegment) -> MessageSegment, bool:
             text = '{}\n{}\n{}'.format(prompt, descrption, link)
             new_segement = MessageSegment.text(text)
             has_json = True
-        if app == 'com.tencent.structmsg':
+        elif app == 'com.tencent.structmsg':
             # 可能是分享之类的
             view: str = segement_json['view']
             prompt: str = segement_json['prompt']
