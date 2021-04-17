@@ -6,7 +6,7 @@
         "forward": true,
         "token": "c961b3d2aa485386af7cd999f777ea83"
     },
-    "prompt": "&#91;分享&#93;bilibili直播-bilibili主播的直播间",
+    "prompt": "[分享]bilibili直播-bilibili主播的直播间",
     "app": "com.tencent.structmsg",
     "ver": "0.0.0.1",
     "view": "news",
