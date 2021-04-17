@@ -10,7 +10,7 @@ async def handle_message(event: Event):
     '''
         解析收到的信息并给出自动回复.
         目前的功能有:
-            将收到的包含有json(比如说QQ小程序分享)的消息转为纯文本消息并发送回去.
+            将收到的包含有json(比如说QQ小程序分享以及QQ分享)的消息转为纯文本消息并发送回去.
     '''
     params = event.copy()
     message: Message = params['message']
@@ -47,12 +47,27 @@ async def parse_segement(segement: MessageSegment) -> MessageSegment, bool:
             data = re.sub(pattern, REPLACES[index], data)
 
         segement_json = json.loads(data)
-        prompt = segement_json['prompt']
-        descrption = segement_json['meta']['detail_1']['desc']
-        link = segement_json['meta']['detail_1']['qqdocurl']
-        text = '{}\n{}\n{}'.format(prompt, descrption, link)
-        new_segement = MessageSegment.text(text)
-        has_json = True
+        app = segement_json['app']
+        if app == 'com.tencent.miniapp_01':
+            # QQ小程序
+            prompt: str = segement_json['prompt']
+            descrption: str = segement_json['meta']['detail_1']['desc']
+            link: str = segement_json['meta']['detail_1']['qqdocurl']
+            text = '{}\n{}\n{}'.format(prompt, descrption, link)
+            new_segement = MessageSegment.text(text)
+            has_json = True
+        if app == 'com.tencent.structmsg':
+            # 可能是分享之类的
+            view: str = segement_json['view']
+            prompt: str = segement_json['prompt']
+            descrption: str = segement_json['meta'][view]['desc']
+            link: str = segement_json['meta'][view]['jumpUrl']
+            text = '{}\n{}\n{}'.format(prompt, descrption, link)
+            new_segement = MessageSegment.text(text)
+            has_json = True
+        else:
+            new_segement = segement
+            has_json = False
     else:
         new_segement = segement
         has_json = False
