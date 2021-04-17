@@ -1,0 +1,29 @@
+{
+    "config": {
+        "autosize": true,
+        "ctime": 1618578604,
+        "type": "normal",
+        "forward": true,
+        "token": "c961b3d2aa485386af7cd999f777ea83"
+    },
+    "prompt": "&#91;分享&#93;bilibili直播-bilibili主播的直播间",
+    "app": "com.tencent.structmsg",
+    "ver": "0.0.0.1",
+    "view": "news",
+    "meta": {
+        "news": {
+            "action": "",
+            "desc": "房间号10366386-Kotorval",
+            "android_pkg_name": "",
+            "jumpUrl": "https:\\/\\/live.bilibili.com\\/10366386?broadcast_type=0&is_room_feed=0&share_medium=android&share_source=qq&bbid=XY7C8D97A5944F2F0C06C3524798E37D5E1E9&ts=1618578631160",
+            "preview": "https:\\/\\/external-30160.picsz.qpic.cn\\/45a6d27ba94975f4db3380abbc6625b7\\/jpg1",
+            "title": "bilibili直播-bilibili主播的直播间",
+            "app_type": 1,
+            "source_icon": "",
+            "tag": "哔哩哔哩",
+            "source_url": "",
+            "appid": 100951776
+        }
+    },
+    "desc": "新闻"
+}
