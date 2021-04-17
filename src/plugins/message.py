@@ -5,6 +5,8 @@ from typing import Tuple
 from aiocqhttp import Event, Message, MessageSegment
 from nonebot import CommandSession, CQHttpError, get_bot, on_command
 
+from src.libs.url import *
+
 bot = get_bot()
 @bot.on_message
 async def handle_message(event: Event):
@@ -64,8 +66,8 @@ async def parse_segement(segement: MessageSegment) -> Tuple[MessageSegment, bool
             # QQ小程序
             prompt: str = segement_json['prompt']
             descrption: str = segement_json['meta']['detail_1']['desc']
-            link: str = segement_json['meta']['detail_1']['qqdocurl']
-            text = '{}\n{}\n{}'.format(prompt, descrption, link)
+            url: str = await parse_url(segement_json['meta']['detail_1']['qqdocurl'])
+            text = '{}\n{}\n{}'.format(prompt, descrption, url)
             new_segement = MessageSegment.text(text)
             flag_send = True
         elif app == 'com.tencent.structmsg':
@@ -73,8 +75,8 @@ async def parse_segement(segement: MessageSegment) -> Tuple[MessageSegment, bool
             view: str = segement_json['view']
             prompt: str = segement_json['prompt']
             descrption: str = segement_json['meta'][view]['desc']
-            link: str = segement_json['meta'][view]['jumpUrl']
-            text = '{}\n{}\n{}'.format(prompt, descrption, link)
+            url: str = await parse_url(segement_json['meta'][view]['jumpUrl'])
+            text = '{}\n{}\n{}'.format(prompt, descrption, url)
             new_segement = MessageSegment.text(text)
             flag_send = True
         else:
@@ -84,6 +86,17 @@ async def parse_segement(segement: MessageSegment) -> Tuple[MessageSegment, bool
         new_segement = segement
         flag_send = False
     return new_segement, flag_send
+
+async def parse_url(url: str) -> str:
+    if url.find('b23.tv') != -1:
+        if url.find('b23.tv/BV') == -1:
+            url: str = get_redirected_url(url)
+            url = url.split('&')[0]
+    elif url.find('bilibili.com') != -1:
+        url = url.split('?')[0]
+    elif url.find('zhihu.com') != -1:
+        url = url.split('?')[0]
+    return url
 
 # # on_command 装饰器将函数声明为一个命令处理器
 # # 这里 weather 为命令的名字，同时允许使用别名「天气」「天气预报」「查天气」
