@@ -6,6 +6,7 @@ from aiocqhttp import Event, Message, MessageSegment
 from nonebot import CommandSession, CQHttpError, get_bot, on_command
 
 from src.libs.url import *
+from src.plugins.control import *
 
 bot = get_bot()
 @bot.on_message
@@ -20,9 +21,22 @@ async def handle_message(event: Event):
     del params['message']
     new_message = await parse_message(message)
     if new_message:
+        message_type: str = params['message_type']
+        if message_type == 'group':
+            id = params['group_id']
+        elif message_type == 'private':
+            id = param['user_id']
+        else:
+            id = param['user_id']
+        key = '{}_{}'.format(message_type, id)
+        value = str(new_message)
+        if key in last_sent.keys():
+            if last_sent[key] == value:
+                return
         try:
             print('[qq_bot.plugin.miniprogram] INFO: 准备发送信息.')
             await bot.send_msg(**params, message=new_message)
+            last_sent[key] = value
         except CQHttpError:
             print('[qq_bot.plugin.miniprogram] ERROR: 发送信息"{}"失败.'.format(new_message))
 
@@ -40,6 +54,9 @@ async def parse_segement(segement: MessageSegment) -> Tuple[MessageSegment, bool
     '''
         解析并处理消息段.
     '''
+    new_segement = segement
+    flag_send = False
+
     # 根据消息段类型进行分类处理, 先考虑纯文本
     if segement.type == 'text':
         # 复读含有'阿屎'的消息段
