@@ -25,9 +25,9 @@ async def handle_message(event: Event):
         if message_type == 'group':
             id = params['group_id']
         elif message_type == 'private':
-            id = param['user_id']
+            id = params['user_id']
         else:
-            id = param['user_id']
+            id = params['user_id']
         key = '{}_{}'.format(message_type, id)
         value = str(new_message)
         if key in last_sent.keys():
